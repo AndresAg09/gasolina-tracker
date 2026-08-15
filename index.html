@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Tracker de Gasolina</title>
+  <meta name="description" content="Registro de tanqueos, rendimiento y autonomía estimada del carro.">
+  <meta name="theme-color" content="#06090f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9B%BD%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+  <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+
+<nav class="nav" role="navigation" aria-label="Navegación principal">
+  <div class="container nav-inner">
+    <div class="nav-brand">
+      <button class="icon-btn" id="btn-menu" title="Menú" aria-label="Abrir menú">☰</button>
+      <div class="nav-logo" aria-hidden="true">⛽</div>
+      <div>
+        <div class="nav-title">Tracker de Gasolina</div>
+        <div class="nav-sub monospace" id="nav-sub">Sin datos aún</div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="btn-export" title="Exportar respaldo (JSON)">⬇</button>
+      <button class="icon-btn" id="btn-import" title="Importar respaldo (JSON)">⬆</button>
+      <input type="file" id="file-import" accept="application/json" hidden>
+    </div>
+  </div>
+</nav>
+
+<!-- Sidebar -->
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <span>Menú</span>
+    <button class="icon-btn" id="btn-close-sidebar" aria-label="Cerrar menú">✕</button>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="index.html" class="sidebar-link active">⛽ Tanqueos</a>
+    <a href="config.html" class="sidebar-link">🛠️ Otros registros</a>
+  </nav>
+</aside>
+
+<!-- Autonomy check -->
+<section aria-label="Autonomía restante">
+  <div class="container">
+    <div class="section-title">¿Cuánto me queda ahora mismo?</div>
+    <div class="card">
+      <div class="kpi-sub" style="margin-bottom:0.7rem;">Para cuando ya llevás más km que tu último tanqueo registrado.</div>
+      <div class="autonomy-form">
+        <div class="field">
+          <label for="in-odometro-actual">Odómetro actual (km)</label>
+          <input type="number" id="in-odometro-actual" inputmode="numeric" placeholder="Ej. 45230">
+        </div>
+        <button class="btn" id="btn-calcular">Calcular</button>
+      </div>
+      <div class="autonomy-result" id="autonomy-result">
+        <div class="range-bar"><div class="range-bar-fill" id="range-bar-fill"></div></div>
+        <div class="autonomy-numbers">
+          <span>Recorridos: <strong id="res-recorridos">—</strong> km</span>
+          <span>Autonomía restante: <strong id="res-restante">—</strong> km</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Estado actual: reserva / vacío / aceite, automático -->
+<section aria-label="Estado del carro">
+  <div class="container">
+    <div class="section-title">Estado del carro</div>
+    <div class="card">
+      <div class="kpi-sub" id="estado-empty">Registrá al menos un tanqueo para ver esta info.</div>
+      <div id="estado-content" style="display:none;">
+        <div class="kpi-sub" id="estado-base-wrap" style="margin-bottom:0.8rem;">
+          Basado en tu tanqueo lleno del <strong id="estado-fecha" style="color:var(--text);">—</strong>
+          a los <strong id="estado-odo" style="color:var(--text); font-family:var(--mono);">—</strong> km.
+        </div>
+        <div class="kpis">
+          <div class="kpi-card">
+            <div class="kpi-label">🔶 Reserva estimada en km</div>
+            <div class="kpi-value" id="estado-reserva-km" style="font-size:1.2rem;">—</div>
+            <div class="mini-bar"><div class="mini-bar-fill" id="estado-reserva-bar"></div></div>
+            <div class="kpi-sub" id="estado-reserva-sub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">🔴 Vacío estimado en km</div>
+            <div class="kpi-value" id="estado-vacio-km" style="font-size:1.2rem;">—</div>
+            <div class="mini-bar"><div class="mini-bar-fill" id="estado-vacio-bar"></div></div>
+            <div class="kpi-sub" id="estado-vacio-sub">—</div>
+          </div>
+          <div class="kpi-card" id="estado-aceite-card">
+            <div class="kpi-label">🛢️ Próximo cambio de aceite (km)</div>
+            <div class="kpi-value" id="estado-aceite-km" style="font-size:1.2rem;">—</div>
+            <div class="mini-bar"><div class="mini-bar-fill" id="estado-aceite-bar"></div></div>
+            <div class="kpi-sub" id="estado-aceite-sub">—</div>
+          </div>
+        </div>
+        <div class="kpi-sub" id="estado-rendimiento-nota" style="margin-top:0.9rem;">—</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KPIs -->
+<section aria-label="Resumen">
+  <div class="container">
+    <div class="section-title">Resumen</div>
+    <div class="kpis">
+      <div class="kpi-card">
+        <div class="kpi-label">Rendimiento</div>
+        <div class="kpi-value" id="kpi-rendimiento">—</div>
+        <div class="kpi-sub">km / galón</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Cada cuánto tanqueas</div>
+        <div class="kpi-value" id="kpi-frecuencia">—</div>
+        <div class="kpi-sub">días en promedio</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Costo por km</div>
+        <div class="kpi-value" id="kpi-costokm">—</div>
+        <div class="kpi-sub" id="kpi-costokm-sub">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Próximo tanqueo</div>
+        <div class="kpi-value" id="kpi-proximo">—</div>
+        <div class="kpi-sub" id="kpi-proximo-sub">estimado</div>
+      </div>
+      <div class="kpi-card" id="kpi-card-tanque" style="display:none;">
+        <div class="kpi-label">Autonomía tanque lleno</div>
+        <div class="kpi-value" id="kpi-tanque">—</div>
+        <div class="kpi-sub">km, según capacidad configurada</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Add entry -->
+<section aria-label="Registrar tanqueo">
+  <div class="container">
+    <div class="section-title">Registrar tanqueo</div>
+    <div class="card">
+      <form class="entry-form" id="form-entry">
+        <div class="field">
+          <label for="in-fecha">Fecha</label>
+          <input type="date" id="in-fecha" required>
+        </div>
+        <div class="field">
+          <label for="in-odometro">Odómetro (km)</label>
+          <input type="number" id="in-odometro" inputmode="numeric" required>
+        </div>
+        <div class="field">
+          <label for="in-galones">Galones</label>
+          <input type="number" id="in-galones" step="0.001" inputmode="decimal" required>
+        </div>
+        <div class="field">
+          <label for="in-monto">Monto ($)</label>
+          <input type="number" id="in-monto" step="0.01" inputmode="decimal" required>
+        </div>
+        <div class="field full">
+          <label for="in-nota">Nota (opcional)</label>
+          <input type="text" id="in-nota" placeholder="Ej. le puso mi hermano">
+        </div>
+        <div class="checkbox-field">
+          <input type="checkbox" id="in-lleno" checked>
+          <label for="in-lleno">Llené el tanque completo</label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn" id="btn-submit">Guardar tanqueo</button>
+          <button type="button" class="btn secondary" id="btn-cancel-edit" style="display:none;">Cancelar edición</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Chart -->
+<section aria-label="Rendimiento en el tiempo" id="section-chart" style="display:none;">
+  <div class="container">
+    <div class="section-title">Rendimiento por tanqueo lleno</div>
+    <div class="card">
+      <div class="chart-wrap"><canvas id="chart-rendimiento"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- History -->
+<section aria-label="Historial de tanqueos">
+  <div class="container">
+    <div class="section-title">Historial</div>
+    <div id="history-wrap">
+      <div class="empty-state">
+        <div class="big">⛽</div>
+        <div>Todavía no has registrado ningún tanqueo.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal-backdrop" id="modal-confirm">
+  <div class="modal">
+    <h3 id="modal-title">¿Confirmar?</h3>
+    <p id="modal-body" style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;"></p>
+    <div class="form-actions" style="grid-column:auto;">
+      <button class="btn danger" id="modal-confirm-btn">Confirmar</button>
+      <button class="btn secondary" id="modal-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="lib/chart.min.js"></script>
+<script src="shared.js?v=2"></script>
+<script src="app.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Otros registros — Tracker de Gasolina</title>
+  <meta name="description" content="Configuración del vehículo: capacidad de tanque, rendimiento conservador y recordatorio de aceite.">
+  <meta name="theme-color" content="#06090f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9B%BD%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+  <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+
+<nav class="nav" role="navigation" aria-label="Navegación principal">
+  <div class="container nav-inner">
+    <div class="nav-brand">
+      <button class="icon-btn" id="btn-menu" title="Menú" aria-label="Abrir menú">☰</button>
+      <div class="nav-logo" aria-hidden="true">🛠️</div>
+      <div>
+        <div class="nav-title">Otros registros</div>
+        <div class="nav-sub monospace">Vehículo y mantenimiento</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Sidebar -->
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <span>Menú</span>
+    <button class="icon-btn" id="btn-close-sidebar" aria-label="Cerrar menú">✕</button>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="index.html" class="sidebar-link">⛽ Tanqueos</a>
+    <a href="config.html" class="sidebar-link active">🛠️ Otros registros</a>
+  </nav>
+</aside>
+
+<!-- Vehículo -->
+<section aria-label="Configuración del vehículo">
+  <div class="container">
+    <div class="section-title">Vehículo</div>
+    <div class="card">
+      <div class="entry-form">
+        <div class="field">
+          <label for="in-capacidad-tanque">Capacidad del tanque (gal)</label>
+          <input type="number" id="in-capacidad-tanque" step="0.1" inputmode="decimal" placeholder="Ej. 14">
+        </div>
+        <div class="field">
+          <label for="in-rendimiento-conservador">Rendimiento conservador (km/gal)</label>
+          <input type="number" id="in-rendimiento-conservador" step="0.1" inputmode="decimal" placeholder="Auto: peor tramo">
+        </div>
+        <div class="field full">
+          <label for="in-reserva-galones">Galones que considerás "reserva"</label>
+          <input type="number" id="in-reserva-galones" step="0.1" inputmode="decimal" placeholder="Ej. 1">
+        </div>
+        <div class="form-actions">
+          <button class="btn secondary" id="btn-guardar-vehiculo">Guardar</button>
+        </div>
+      </div>
+      <div class="kpi-sub" style="margin-top:0.6rem;">
+        No hay un dato confirmado de fábrica para tu Isuzu TFS 1998 4x4 turbo. Ajustá la capacidad cuando la confirmes (sticker de la tapa de gasolina, manual, o la próxima vez que lo llenés viniendo de casi vacío). El "rendimiento conservador" es el que se usa para calcular reserva/vacío — si lo dejás vacío, la app usa automáticamente el peor tramo que hayas registrado, para no quedarte corto.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Aceite -->
+<section aria-label="Recordatorio de aceite">
+  <div class="container">
+    <div class="section-title">Aceite</div>
+    <div class="card">
+      <div class="entry-form">
+        <div class="field full">
+          <label for="in-aceite-proximo">Próximo cambio de aceite (km)</label>
+          <input type="number" id="in-aceite-proximo" inputmode="numeric" placeholder="Ej. 743967">
+        </div>
+        <div class="form-actions">
+          <button class="btn secondary" id="btn-guardar-aceite">Guardar</button>
+        </div>
+      </div>
+      <div class="kpi-sub" style="margin-top:0.6rem;">
+        Metelo tal cual te lo diga el mecánico o la calcomanía del aceite. La barra de progreso arranca desde el kilometraje que tengas registrado ahora mismo — si cambiás este número después de un cambio de aceite real, el progreso se reinicia solo.
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script src="shared.js?v=2"></script>
+<script src="config.js?v=1"></script>
+</body>
+</html>
