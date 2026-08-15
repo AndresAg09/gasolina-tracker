@@ -92,9 +92,47 @@
   </div>
 </section>
 
+<!-- Sincronización -->
+<section aria-label="Sincronización entre dispositivos">
+  <div class="container">
+    <div class="section-title">Sincronización entre dispositivos</div>
+    <div class="card">
+      <div class="kpi-sub" style="margin-bottom:0.9rem;">
+        Usa un Gist privado de tu cuenta de GitHub como almacenamiento compartido. Configurá lo mismo (token + ID del Gist) en cada dispositivo para que todos vean el mismo historial.
+      </div>
+
+      <div class="kpi-sub" style="margin-bottom:0.9rem;">
+        <strong style="color:var(--text);">Paso 1 — generá un token</strong><br>
+        Andá a <a href="https://github.com/settings/tokens/new?scopes=gist&description=Tracker%20de%20Gasolina" target="_blank" rel="noopener" style="color:var(--blue-light); text-decoration:underline;">github.com/settings/tokens/new</a>
+        con el permiso <strong style="color:var(--text);">gist</strong> ya marcado, generalo, y copiá el token (empieza con <span class="monospace">ghp_</span>).
+        Tratalo como una contraseña — no lo compartas ni lo pegues en otro lado.
+      </div>
+
+      <div class="entry-form">
+        <div class="field full">
+          <label for="in-sync-token">Token de GitHub</label>
+          <input type="password" id="in-sync-token" placeholder="ghp_...">
+        </div>
+        <div class="field full">
+          <label for="in-sync-gist">ID del Gist</label>
+          <input type="text" id="in-sync-gist" placeholder="Vacío en el primer dispositivo">
+        </div>
+        <div class="form-actions">
+          <button class="btn" id="btn-sync-crear">Crear Gist y sincronizar (solo la 1ª vez)</button>
+          <button class="btn secondary" id="btn-sync-ahora">Sincronizar ahora</button>
+        </div>
+      </div>
+
+      <div class="kpi-sub" id="sync-gist-id-result" style="display:none; margin-top:0.9rem;"></div>
+      <div class="kpi-sub" id="sync-status" style="margin-top:0.9rem;">Todavía no sincronizado.</div>
+    </div>
+  </div>
+</section>
+
 <div class="toast" id="toast"></div>
 
 <script src="shared.js?v=2"></script>
+<script src="sync.js?v=1"></script>
 <script src="config.js?v=1"></script>
 </body>
 </html>

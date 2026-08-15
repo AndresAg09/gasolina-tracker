@@ -14,7 +14,10 @@
   let chart = null;
   let confirmCallback = null;
 
-  function saveEntries() { saveEntriesRaw(entries); }
+  function saveEntries() {
+    saveEntriesRaw(entries);
+    window.GTSync.pushInBackground();
+  }
 
   // ── Helpers ─────────────────────────────────────────────────
   function sortedByOdometro() {
@@ -601,7 +604,31 @@
     $("#modal-cancel-btn").addEventListener("click", closeConfirm);
     $("#modal-confirm").addEventListener("click", ev => { if (ev.target.id === "modal-confirm") closeConfirm(); });
 
+    $("#btn-sync").addEventListener("click", async () => {
+      if (!window.GTSync.isConfigured()) {
+        showToast("Configurá la sincronización en Otros registros");
+        return;
+      }
+      showToast("Sincronizando…");
+      try {
+        await window.GTSync.syncNow();
+        entries = loadEntries();
+        renderAll();
+        showToast("Sincronizado");
+      } catch (err) {
+        showToast("No se pudo sincronizar: " + err.message);
+      }
+    });
+
     renderAll();
+
+    // Al abrir la página, si ya está configurada la sincronización, trae lo
+    // último de otros dispositivos en silencio (sin bloquear la carga inicial).
+    if (window.GTSync.isConfigured()) {
+      window.GTSync.syncNow()
+        .then(() => { entries = loadEntries(); renderAll(); })
+        .catch(err => console.warn("[sync] auto-sync al cargar falló:", err));
+    }
   }
 
   document.addEventListener("DOMContentLoaded", init);

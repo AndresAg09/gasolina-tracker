@@ -26,6 +26,7 @@
       saveNum(RESERVE_GAL_KEY, resIn && resV > 0 ? resV : null);
 
       showToast("Ajustes del vehículo guardados");
+      window.GTSync.pushInBackground();
     });
 
     // Ajustes de aceite: solo se pide el próximo cambio (el número del
@@ -50,6 +51,63 @@
       }
 
       showToast("Recordatorio de aceite guardado");
+      window.GTSync.pushInBackground();
+    });
+
+    // ── Sincronización (GitHub Gist) ────────────────────────────
+    const { loadToken, saveToken, loadGistId, saveGistId, lastSyncedAt, createGist, syncNow } = window.GTSync;
+
+    if (loadToken()) $("#in-sync-token").value = loadToken();
+    if (loadGistId()) $("#in-sync-gist").value = loadGistId();
+
+    function renderSyncStatus() {
+      const last = lastSyncedAt();
+      $("#sync-status").textContent = last
+        ? `Última sincronización: ${last.toLocaleString("es-CR")}`
+        : "Todavía no sincronizado.";
+    }
+    renderSyncStatus();
+
+    function readSyncFields() {
+      const token = $("#in-sync-token").value.trim();
+      const gistId = $("#in-sync-gist").value.trim();
+      if (token) saveToken(token);
+      if (gistId) saveGistId(gistId);
+      return { token, gistId };
+    }
+
+    $("#btn-sync-crear").addEventListener("click", async () => {
+      const { token } = readSyncFields();
+      if (!token) { showToast("Pegá primero el token de GitHub"); return; }
+      if (loadGistId()) {
+        showToast("Ya hay un Gist configurado — usá \"Sincronizar ahora\", o borrá el ID del Gist si querés crear uno nuevo.");
+        return;
+      }
+      showToast("Creando Gist…");
+      try {
+        const id = await createGist();
+        $("#in-sync-gist").value = id;
+        const box = $("#sync-gist-id-result");
+        box.style.display = "";
+        box.innerHTML = `Gist creado: <strong style="color:var(--text); font-family:var(--mono);">${id}</strong><br>Copiá este ID y pegalo junto con el mismo token en tus otros dispositivos.`;
+        renderSyncStatus();
+        showToast("Gist creado y sincronizado");
+      } catch (err) {
+        showToast("No se pudo crear el Gist: " + err.message);
+      }
+    });
+
+    $("#btn-sync-ahora").addEventListener("click", async () => {
+      const { token, gistId } = readSyncFields();
+      if (!token || !gistId) { showToast("Completá el token y el ID del Gist"); return; }
+      showToast("Sincronizando…");
+      try {
+        await syncNow();
+        renderSyncStatus();
+        showToast("Sincronizado");
+      } catch (err) {
+        showToast("No se pudo sincronizar: " + err.message);
+      }
     });
   }
 
